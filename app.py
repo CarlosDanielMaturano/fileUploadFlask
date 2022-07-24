@@ -6,43 +6,54 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "coolkey"
 files_path = os.path.realpath("files")
 app.config["UPLOAD_FOLDER"] = files_path
-permitted_files = [".txt", ".jpg", ".png", ".jpeg", ".pdf", ".mp4"]
 
 
-def get_files():
-    for dir in os.listdir(files_path):
+icons_for_file_types = {
+    "txt":     'text.svg',
+    "jpg":      'images.svg',
+    "png":     'images.svg',
+    "jpeg":    'images.sv',
+    "pdf":     'pdf.svg',
+    "mp4":     'video.svg'   
+}
+
+def get_files(dir):
+    path = os.path.join(files_path, dir)
+    if os.path.isdir(path):
+        for file in os.listdir(path):
+            file_path = os.path.join(path, file)
+            if os.path.isfile(file_path):                    
+                yield {
+                        "filename":     file,
+                        "file_path":    f'{dir}|{file}',
+                        "file_type":    file[file.index('.')+1:]
+                    }
+
+def get_folders():
+     for dir in os.listdir(files_path):
         path = os.path.join(files_path, dir)
         if os.path.isdir(path):
-            for file in os.listdir(path):
-                file_path = os.path.join(path, file)
-                if os.path.isfile(file_path):                    
-                    yield {
-                            "filename":   file,
-                            "file_path":  f'{dir}|{file}'
-                        }
+            yield dir
 
 
 def delete_file(filename):
     os.remove(os.path.join(files_path, filename))
 
 
-def organize_files():
-    for file in os.listdir(files_path):
-        path = os.path.join(files_path, file)
-        if os.path.isfile(path):
-            default_file_type = None
-            for file_type in permitted_files:
-                if file.endswith(file_type):
-                    default_file_type = file_type.removeprefix('.')
-                    break 
-
-            if default_file_type:
-                os.replace(path, os.path.join(files_path, f'{default_file_type}/{file}'))
-    
-
-@app.route('/', methods=["GET", "POST"])
+@app.route('/', methods=["POST", "GET"])
 def index():
-    organize_files()
+    if request.method == "POST":
+        folder_name = request.form["folder_name"]
+        try:
+            os.mkdir(os.path.join(files_path, folder_name))
+        except:
+            flash("Folder already exists")
+
+    return render_template("index.html", folders=list(get_folders()))
+
+
+@app.route('/files/<folder_name>', methods=["GET", "POST"])
+def files(folder_name):
     if request.method == "POST":
         if 'file' not in request.files:
             flash("No files")
@@ -50,38 +61,46 @@ def index():
 
         file = request.files['file']
         
-        if not any(file.filename.endswith(file_type) for file_type in permitted_files):
+        if not any(file.filename.endswith(file_type) for file_type in icons_for_file_types.keys()):
             flash("Banned file type")
-            print("SEM MACACO")
-            return redirect(url_for('index'))
+            return redirect(url_for('files', folder_name=folder_name))
 
-        file.save(os.path.join(files_path, file.filename))
-        organize_files()
+        file.save(os.path.join(files_path, f'{folder_name}/{file.filename}'))
 
-    return render_template("index.html", files=list(get_files()))
+    return render_template("files.html", files=list(get_files(folder_name)), icons=icons_for_file_types)
 
 
-@app.route('/delete/<file>')
+@app.route('/files/delete/<file>')
 def delete_file(file):
+    folder_name = file[0:file.index('|')]
     file = str(file).replace('|', '/')
     print(file)
+    print(os.path.join(files_path, file))
     os.remove(os.path.join(files_path, file))
    
-    return redirect(url_for("index"))
+    return redirect(url_for("files", folder_name=folder_name))
+
+@app.route('/delete/<folder_name>')
+def delete_folder(folder_name):
+    folder_path  = os.path.join(files_path, folder_name)
+    os.rmdir(folder_path)
+
+    return redirect(url_for('index'))
 
 
-@app.route('/download/<file>')
+@app.route('/files/download/<file>')
 def download_file(file):
     file = str(file).replace('|', '/')
     print(file)
     return send_from_directory(directory=app.config['UPLOAD_FOLDER'], path=file, filename=file, as_attachment=True)
 
 
-@app.route('/view/<file>')
+@app.route('/files/view/<file>')
 def view_raw(file):
     file = str(file).replace('|', '/')
     return send_from_directory(directory=app.config['UPLOAD_FOLDER'], path=file, filename=file)
 
 
 if __name__ == '__main__':
+    print(list(get_folders()))
     app.run(debug=True)

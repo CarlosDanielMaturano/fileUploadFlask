@@ -2,18 +2,17 @@
     width: 500px;
     max-width: 500px;
     margin: auto;
-    margin-top: 100px;
-   
+    margin-top: 100px;   
 }
 .files{
-    max-height: 500px;
+    max-height: 500px;    
     overflow-y: scroll;
     -ms-overflow-style: none;  
     scrollbar-width: none;  
 }
 .files::-webkit-scrollbar {
     display: none;
-  }
+}
   
 .file{
     text-align: center;
@@ -32,7 +31,6 @@
     text-decoration: none;
     color: white;
     margin-right: 10px;
-   
 
 }
 .user-input{
@@ -55,4 +53,57 @@
 .file-button::-webkit-file-upload-button{
     user-select: none;
     display: none;
+}
+
+.folder{
+    font-size: 20px;
+    max-width: 400px;
+    margin: 10px;
+    padding: 10px;
+    
+}
+.folders{
+    overflow-y: scroll;
+    max-height: 510px;
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
+}
+.folders::-webkit-scrollbar {
+    display: none;
+}
+.icon{
+    margin-left: 20px;
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+
+.folder-content{
+    max-width: 400px;
+    max-height: 500px;
+    min-height: 500px;
+}
+.folder-link{
+    margin-left: 10px;
+    color: black;
+    width: 400px;
+}
+
+
+.advice{
+    font-size: 20px;
+}
+.advice p{
+    width: 400px;
+}
+.create-folder{
+    width: 400px;
+    margin-top: 20px;
+}
+.create-button{
+    border-radius: 0%;
+}
+.create-folder input{
+    outline: none;
+    user-select: none;
 }
