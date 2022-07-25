@@ -107,3 +107,14 @@
     outline: none;
     user-select: none;
 }
+.home{
+    width: 400px;
+    margin-top: 20px;
+    color: white;
+    font-weight: 900;
+    font-size: 20px;
+    text-align: center;
+}
+.home i{
+    float: left;
+}
